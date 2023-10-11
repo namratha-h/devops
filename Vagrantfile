@@ -6,7 +6,7 @@ Vagrant.configure("2") do |config|
 
         db.vm.network "private_network", type: "static", ip: "192.168.121.222";
 
-        db.vm.provision "shell", path: "script.sh";
+        db.vm.provision "shell", path: "database.sh";
         
         db.vm.provider "libvirt" do |lvt|
             lvt.qemu_use_session = false
