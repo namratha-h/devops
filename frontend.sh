@@ -20,15 +20,40 @@ sudo apt-get install nodejs -y
 node -v
 npm -v
 
-# Install project dependencies
-cd /frontend
-npm install
 
-echo "installed all dependecies."
+if [ ! -d "/frontend" ]; then
+    # If the directory doesn't exist, clone the project
+    git clone -b fe-dev https://github.com/namratha-h/devops.git /frontend
+    cd /frontend
+    npm install
 
-# Create a systemd service file for the React app
-cat <<EOF | sudo tee /etc/systemd/system/frontend.service
-[Unit]
+else
+    cd /frontend
+    
+    # Path to the temporary package.json file
+    temp_package_json="/tmp/temp_package.json"
+    cp package.json "$temp_package_json"
+    
+    git pull origin fe-dev
+    
+    # Path to the local package.json file
+    local_package_json="/frontend/package.json"
+    
+    # Compare the local and tmp package.json files
+    if diff -q "$local_package_json" "$temp_package_json" > /dev/null; then
+        echo "No differences in package.json. Skipping npm install."
+    else
+        echo "Differences found in package.json. Running npm install."
+        npm install
+    fi
+    
+    # Clean up temporary file
+    sudo rm -f "$temp_package_json"   
+fi
+
+
+file_path="/etc/systemd/system/frontend.service"
+content="[Unit]
 Description=React App
 
 [Service]
@@ -39,8 +64,26 @@ User=$(whoami)
 
 [Install]
 WantedBy=multi-user.target
-EOF
+"
 
-# Enable and start the systemd service
+if [ ! -e "$file_path" ]; then
+    echo "$content" | sudo tee "$file_path" > /dev/null
+    if [ $? -eq 0 ]; then
+        # Reload systemd to apply changes
+        sudo systemctl daemon-reload
+        echo "File created successfully: $file_path"
+    else
+        echo "Error: Failed to create the file."
+        exit 1
+    fi
+else
+    echo "File already exists. Skipping creation."
+fi
+
+
+# Enable and start the service
 sudo systemctl enable frontend.service
 sudo systemctl start frontend.service
+
+# Check service status
+sudo systemctl status frontend.service
