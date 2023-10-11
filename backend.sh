@@ -9,6 +9,7 @@ if [ ! -d "/backend" ]; then
     pip install -r /backend/requirements.txt
 
 else
+    cd /backend
     temp_requirements_file="/tmp/requirements.txt"
     cp /backend/requirements.txt "$temp_requirements_file"
     
