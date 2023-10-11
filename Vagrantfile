@@ -20,8 +20,6 @@ Vagrant.configure("2") do |config|
     be.vm.network "private_network", type: 'static', ip: "192.168.121.221"
     be.vm.network "forwarded_port", guest: 8000, host: 8000
 
-    be.vm.synced_folder ".", "/backend"
-    
     # be.vm.provision "ansible" do |ansible|
     #   ansible.playbook = "playbook.yml"
     # end
